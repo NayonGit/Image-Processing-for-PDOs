@@ -1,0 +1,17 @@
+tellu:
+  url: https://zenodo.org/records/6768583/files/OrganoidDataset.zip?download=1
+  task: detection
+  size: [1024, 1024]
+  num_classes: 5
+
+orgaquant:
+  url: https://osf.io/y29h7/download
+  task: localization
+  size: [512, 512]
+  num_classes: 1
+
+multiorg:
+  url: https://zenodo.org/records/14415968/files/multiorg.zip?download=1
+  task: localization
+  size: [2048, 2048]
+  num_classes: 1

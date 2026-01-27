@@ -1,0 +1,61 @@
+seed: 0
+optimizer: Adam
+optimizer_params:
+  lr: 0.00001
+batch_size: 16
+num_workers: 0
+
+max_epochs: 1000
+patience: 10
+
+segmenter_config:
+  mae:
+    n_cls: 1
+    patch_size: 16
+    d_encoder: 768
+    n_layers: 2
+    n_heads: 3
+    d_model: 768
+    d_ff: 3072
+    drop_path_rate: 0.0
+    dropout: 0.0
+  clip:
+    n_cls: 1
+    patch_size: 16
+    d_encoder: 768
+    n_layers: 2
+    n_heads: 3
+    d_model: 768
+    d_ff: 3072
+    drop_path_rate: 0.0
+    dropout: 0.0
+  vit:
+    n_cls: 1
+    patch_size: 16
+    d_encoder: 768
+    n_layers: 2
+    n_heads: 3
+    d_model: 768
+    d_ff: 3072
+    drop_path_rate: 0.0
+    dropout: 0.0
+  dinov2:
+    n_cls: 1
+    patch_size: 14
+    d_encoder: 768
+    n_layers: 2
+    n_heads: 3
+    d_model: 768
+    d_ff: 3072
+    drop_path_rate: 0.0
+    dropout: 0.0
+  core:
+    n_cls: 1
+    patch_size: 14
+    d_encoder: 768
+    n_layers: 2
+    n_heads: 3
+    d_model: 768
+    d_ff: 3072
+    drop_path_rate: 0.0
+    dropout: 0.0

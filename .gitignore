@@ -4,3 +4,10 @@ __pycache__/
 .env
 .DS_Store
 .ipynb_checkpoints/
+multiOrg_benchmark/multiorg_mmdet_coco/
+multiOrg_benchmark/archive/
+multiOrg_benchmark/venv/
+bao/
+bao_copy/
+data/
+download_datasets.ipynb
