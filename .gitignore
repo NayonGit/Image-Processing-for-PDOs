@@ -11,3 +11,4 @@ bao/
 bao_copy/
 data/
 download_datasets.ipynb
+checkpoints/
