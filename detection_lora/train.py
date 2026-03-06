@@ -202,29 +202,13 @@ def test(
     """
     L.seed_everything(seed)
 
-    if dataset_name in ["multiorg", "orgaquant"]:
-        test_dataset = OrganoidDetectionDataset(
-            dataset_name=dataset_name,
-            split="test",
-            h5_path=h5_path,
-        )
-        if num_classes is None:
-            num_classes = test_dataset.num_classes
-    else:
-        # For tellu, we use the validation set as test since there is no separate test split
-        full_dataset = OrganoidDetectionDataset(
-            dataset_name=dataset_name,
-            split="train",
-            h5_path=h5_path,
-        )
-        if num_classes is None:
-            num_classes = full_dataset.num_classes
-        train_size = int(len(full_dataset) * train_val_split)
-        val_size = len(full_dataset) - train_size
-        _, test_dataset = random_split(
-            full_dataset, [train_size, val_size],
-            generator=torch.Generator().manual_seed(seed),
-        )
+    test_dataset = OrganoidDetectionDataset(
+        dataset_name=dataset_name,
+        split="test",
+        h5_path=h5_path,
+    )
+    if num_classes is None:
+        num_classes = test_dataset.num_classes
     
     print(f"[Data] Test: {len(test_dataset)}")
     print(f"[Info] Inferred num_classes={num_classes} from dataset.")

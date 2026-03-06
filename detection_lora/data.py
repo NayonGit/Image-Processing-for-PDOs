@@ -10,24 +10,24 @@ from detection_lora.utils import box_xyxy_to_cxcywh
 
 DATASET_INFO = {
     "tellu": {
-        "path": "data/tellu.h5",
+        "path": "data/tellu_processed.h5",
         "task": "detection", # labels = [cls, x1, y1, x2, y2]
         "original_size": (960, 1280), #(1024, 1024),
         "img_size": 1024,
         "num_classes": 1,
     },
     "orgaquant": {
-        "path": "data/orgaquant.h5",
+        "path": "data/orgaquant_processed.h5",
         "task": "localization", # labels = [x1, y1, x2, y2]
         "original_size": None,  # taille variable, lue dynamiquement
         "img_size": 512,
         "num_classes": 1,
     },
     "multiorg": {
-        "path": "data/multiorg.h5",
+        "path": "data/multiorg_processed.h5",
         "task": "detection",  # labels = [cls, x1, y1, x2, y2]
         "original_size": (512, 512), #(2048, 2048),
-        "img_size": 2048,
+        "img_size": 512,
         "num_classes": 1,
     },
 }
