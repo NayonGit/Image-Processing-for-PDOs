@@ -45,10 +45,13 @@ def train(
     num_patches: int | None = None,
     patch_size: int = 224,
     overlap_size: int = 30,
+    # Resume training
+    resume_from_checkpoint: Optional[str] = None,
 ):
     """Full training pipeline with frozen backbone on H5 datasets."""
     L.seed_everything(seed)
 
+    # Load or create dataset
     full_dataset = OrganoidDetectionDataset(
         dataset_name=dataset_name,
         split="train",
@@ -72,6 +75,7 @@ def train(
     )
     print(f"[Data] Train: {len(train_dataset)}, Val: {len(val_dataset)}")
 
+    # Always create a new model structure (will be populated from checkpoint if resuming)
     model = DetectionModel(
         backbone_name=backbone_name,
         backbone_size=backbone_size,
@@ -135,7 +139,15 @@ def train(
         gradient_clip_val=0.1 if not use_patching else None,
     )
 
-    trainer.fit(model, train_loader, val_loader)
+    # Report what's happening
+    if resume_from_checkpoint:
+        print(f"[Info] Resuming training from: {resume_from_checkpoint}")
+    else:
+        print(f"[Info] Starting fresh training run")
+    print()
+
+    # trainer.fit handles checkpoint loading automatically when ckpt_path is provided
+    trainer.fit(model, train_loader, val_loader, ckpt_path=resume_from_checkpoint)
     trainer.test(model, val_loader, ckpt_path=callbacks[1].best_model_path)
 
     return trainer.callback_metrics
