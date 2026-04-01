@@ -55,7 +55,8 @@ def create_backbone_with_lora(
     lora_alpha: int = 16,
     lora_dropout: float = 0.1,
     target_modules: Optional[List[str]] = None,
-    target_all: bool = False
+    target_all: bool = False,
+    use_dora: bool = False
 ) -> nn.Module:
     """
     Create a foundation model backbone with LoRA using PEFT library.
@@ -128,7 +129,8 @@ def create_backbone_with_lora(
         target_modules=target_modules,
         lora_dropout=lora_dropout,
         bias="none",  # Don't train biases otherwise 'lora_only' or 'all'
-        task_type=TaskType.FEATURE_EXTRACTION  # We're using the backbone for feature extraction
+        task_type=TaskType.FEATURE_EXTRACTION,  # We're using the backbone for feature extraction
+        use_dora=use_dora,  # Whether to use DoRA for dynamic rank adjustment
     )
     
     # Apply LoRA adapters
@@ -138,6 +140,11 @@ def create_backbone_with_lora(
     print(f"  - alpha: {lora_alpha}")
     print(f"  - dropout: {lora_dropout}")
     print(f"  - target_modules: {target_modules}")
+    print(f"  - use_dora: {lora_config}")
+    print(f"  - peft_config: {model.peft_config}")
+    for name, param in model.named_parameters():
+        if "magnitude" in name.lower():
+            print(f"  ✅ DoRA param found: {name}")
     model.print_trainable_parameters()
     
     return model
