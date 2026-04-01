@@ -33,6 +33,7 @@ class LoRADetectionModel(L.LightningModule):
         lora_alpha: int = 16,
         lora_dropout: float = 0.1,
         lora_target_modules: Optional[List[str]] = None,
+        use_dora: bool = False,
         # Loss parameters
         cost_class: float = 1.0,
         cost_bbox: float = 5.0,
@@ -76,6 +77,7 @@ class LoRADetectionModel(L.LightningModule):
             lora_alpha=lora_alpha,
             lora_dropout=lora_dropout,
             target_modules=lora_target_modules,
+            use_dora=use_dora,
         )
         num_features = self.backbone.num_features
 
