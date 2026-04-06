@@ -137,7 +137,7 @@ class OrganoidDetectionDataset(Dataset):
             labels = torch.tensor(cls_ids[valid.numpy()], dtype=torch.int64)
 
         target = {
-            "boxes": boxes,  # xyxy abs
+            "boxes": boxes,  # cxcywh abs
             "labels": labels,
             "orig_size": torch.tensor([orig_h, orig_w], dtype=torch.int64),
             "size": torch.tensor([self.img_size, self.img_size], dtype=torch.int64),

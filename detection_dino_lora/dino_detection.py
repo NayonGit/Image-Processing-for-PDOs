@@ -180,12 +180,12 @@ class LoRADINOModel(L.LightningModule):
             random_refpoints_xy=False,
             
             # --- Two Stage ---
-            two_stage_type="standard",
+            two_stage_type="no",  # "standard", "early", "enceachlayer", "enclayer1"
             two_stage_pat_embed=0,
             two_stage_add_query_num=0,
             two_stage_learn_wh=False,
             two_stage_keep_all_tokens=False,
-            dec_layer_number=[num_queries]*dec_layers,
+            dec_layer_number=None,
             
             # --- Structure du Décodeur ---
             decoder_sa_type="sa",
@@ -237,7 +237,7 @@ class LoRADINOModel(L.LightningModule):
             fix_refpoints_hw=-1,
             num_feature_levels=4,
             nheads=nheads,
-            two_stage_type="standard",
+            two_stage_type="no",
             dec_pred_class_embed_share=True,
             dec_pred_bbox_embed_share=True,
             two_stage_class_embed_share=True,
