@@ -1,0 +1,3 @@
+[submodule "third_party/DINO"]
+	path = third_party/DINO
+	url = git@github.com:IDEA-Research/DINO.git
