@@ -83,7 +83,7 @@ class LoRADINOModel(L.LightningModule):
         backbone_size: str = "small",
         num_classes: int = 1,
         hidden_dim: int = 256,
-        num_queries: int = 300,
+        num_queries: int = 100,
         nheads: int = 8,
         enc_layers: int = 6,
         dec_layers: int = 6,
@@ -94,11 +94,12 @@ class LoRADINOModel(L.LightningModule):
         lora_alpha: int = 16,
         lora_dropout: float = 0.1,
         lora_target_modules: Optional[List[str]] = None,
+        use_dora: bool = False,
         # loss/matcher
         focal_alpha: float = 0.25,
-        set_cost_class: float = 2.0,
-        set_cost_bbox: float = 5.0,
-        set_cost_giou: float = 2.0,
+        cost_class: float = 2.0,
+        cost_bbox: float = 5.0,
+        cost_giou: float = 2.0,
         cls_loss_coef: float = 1.0,
         bbox_loss_coef: float = 5.0,
         giou_loss_coef: float = 2.0,
@@ -142,57 +143,82 @@ class LoRADINOModel(L.LightningModule):
             lora_alpha=lora_alpha,
             lora_dropout=lora_dropout,
             target_modules=lora_target_modules,
+            use_dora=use_dora,
         )
 
         args = SimpleNamespace(
+            # --- Arguments de base ---
             device="cuda" if torch.cuda.is_available() else "cpu",
             num_classes=num_classes,
             num_queries=num_queries,
             hidden_dim=hidden_dim,
-            position_embedding="sine",
-            pe_temperatureH=20,
-            pe_temperatureW=20,
             nheads=nheads,
             enc_layers=enc_layers,
             dec_layers=dec_layers,
             dim_feedforward=dim_feedforward,
             dropout=dropout,
-            num_feature_levels=4,
-            ddetr_num_feature_levels=4,
-            ddetr_dec_n_points=4,
-            ddetr_enc_n_points=4,
-            ddetr_two_stage=True,
-            ddetr_use_dab=False,
-            ddetr_high_dim_query_update=False,
-            ddetr_no_sine_embed=False,
-            random_refpoints_xy=False,
-            fix_refpoints_hw=-1,
-            two_stage_type="standard",
-            two_stage_bbox_embed_share=True,
-            two_stage_class_embed_share=True,
-            dec_pred_class_embed_share=True,
-            dec_pred_bbox_embed_share=True,
-            decoder_sa_type="sa",
+
+            # --- Arguments réclamés par build_deformable_transformer ---
+            decoder_layer_noise=False,     # Utilisé dans le premier IF
+            dln_xy_noise=0.0,              # Requis si decoder_layer_noise est True (on met 0 par sécu)
+            dln_hw_noise=0.0,              # Requis si decoder_layer_noise est True
+            
+            unic_layers=0,                 # Mappe vers num_unicoder_layers
+            pre_norm=False,                # Mappe vers normalize_before
+            query_dim=4,
+            transformer_activation="relu",
             num_patterns=0,
+            
+            num_feature_levels=4,
+            enc_n_points=4,
+            dec_n_points=4,
+            use_deformable_box_attn=False,
+            box_attn_type='roi_align',
+            
+            add_channel_attention=False,
+            add_pos_value=False,
+            random_refpoints_xy=False,
+            
+            # --- Two Stage ---
+            two_stage_type="standard",
+            two_stage_pat_embed=0,
+            two_stage_add_query_num=0,
+            two_stage_learn_wh=False,
+            two_stage_keep_all_tokens=False,
+            dec_layer_number=[num_queries]*dec_layers,
+            
+            # --- Structure du Décodeur ---
+            decoder_sa_type="sa",
+            decoder_module_seq=['sa', 'ca', 'ffn'], # ATTENTION: s'appelle decoder_module_seq ici
+            embed_init_tgt=False,
+            use_detached_boxes_dec_out=False,
+
+            # --- Arguments pour le reste du modèle (Matcher/Criterion) ---
+            matcher_type="HungarianMatcher",
             dn_number=dn_number,
             use_dn=use_dn,
             dn_box_noise_scale=dn_box_noise_scale,
             dn_label_noise_ratio=dn_label_noise_ratio,
             dn_labelbook_size=max(2, num_classes + 1),
-            matcher_type="HungarianMatcher",
-            set_cost_class=set_cost_class,
-            set_cost_bbox=set_cost_bbox,
-            set_cost_giou=set_cost_giou,
+            set_cost_class=cost_class,
+            set_cost_bbox=cost_bbox,
+            set_cost_giou=cost_giou,
             focal_alpha=focal_alpha,
+            # Ajoute les coefs de loss s'ils sont utilisés dans le Criterion
             cls_loss_coef=cls_loss_coef,
             bbox_loss_coef=bbox_loss_coef,
             giou_loss_coef=giou_loss_coef,
-            masks=False,
-            aux_loss=True,
-            num_select=300,
-            nms_iou_threshold=-1,
+            # --- Position Embedding (Requis par le Joiner) ---
+            position_embedding="sine",      # L'erreur actuelle
+            pe_temperatureH=20,             # Température pour l'encodage vertical
+            pe_temperatureW=20,             # Température pour l'encodage horizontal
+            N_steps=hidden_dim // 2,        # Souvent requis pour diviser le d_model en X/Y
+            
+            # --- Backprop / Training ---
+            masks=False,                    # On travaille sur des boîtes, pas des segmentations
+            aux_loss=True,                  # Important pour DINO (calcule la loss à chaque couche)
         )
-
+        
         position_embedding = build_position_encoding(args)
         wrapped_backbone = LoRAJoinerForDINO(foundation, hidden_dim=hidden_dim, num_feature_levels=4)
         backbone = Joiner(wrapped_backbone, position_embedding)
@@ -240,7 +266,7 @@ class LoRADINOModel(L.LightningModule):
             focal_alpha=focal_alpha,
             losses=["labels", "boxes", "cardinality"],
         )
-        self.postprocessor = PostProcess(num_select=300, nms_iou_threshold=-1)
+        self.postprocessor = PostProcess(num_select=100, nms_iou_threshold=-1)
 
     def _abs_xyxy_to_norm_cxcywh(self, boxes_xyxy_abs: torch.Tensor, size_hw: torch.Tensor) -> torch.Tensor:
         h, w = size_hw[0].float(), size_hw[1].float()
@@ -281,6 +307,8 @@ class LoRADINOModel(L.LightningModule):
         self.val_metric.update(pred_list, gt_list)
 
     def training_step(self, batch, batch_idx):
+        
+
         images, targets = batch
         device = images.device
 

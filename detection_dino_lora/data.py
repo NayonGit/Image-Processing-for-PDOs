@@ -12,7 +12,7 @@ DATASET_INFO = {
         "task": "detection",  # labels = [cls, x1, y1, x2, y2]
         "original_size": (960, 1280),
         "img_size": 1024,
-        "num_classes": 4,  # 1,
+        "num_classes": 1,  # 1,
     },
     "orgaquant": {
         "path": "data/orgaquant_processed.h5",

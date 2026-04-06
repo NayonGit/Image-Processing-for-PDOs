@@ -47,6 +47,7 @@ def create_backbone_with_lora(
     lora_dropout: float = 0.1,
     target_modules: Optional[List[str]] = None,
     target_all: bool = False,
+    use_dora: bool = False,
 ) -> nn.Module:
     """
     Create a foundation model backbone with LoRA using PEFT library.
@@ -99,6 +100,7 @@ def create_backbone_with_lora(
         lora_dropout=lora_dropout,
         bias="none",
         task_type=TaskType.FEATURE_EXTRACTION,
+        use_dora=use_dora,
     )
     
     model = get_peft_model(model, lora_config)
@@ -107,5 +109,6 @@ def create_backbone_with_lora(
     print(f"  - alpha: {lora_alpha}")
     print(f"  - dropout: {lora_dropout}")
     print(f"  - target_modules: {target_modules}")
+    print(f"  - use_dora: {lora_config}")
     model.print_trainable_parameters()
     return model
