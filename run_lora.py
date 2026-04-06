@@ -62,6 +62,8 @@ def get_train_parser():
     parser.add_argument("--lora-target-modules", type=str, nargs="+",
                         default=["qkv", "proj", "fc1", "fc2"],
                         help="Target modules for LoRA adaptation")
+    parser.add_argument("--use-dora", type=bool, default=False,
+                        help="Whether to use DoRA for dynamic rank adjustment")
     
     # Loss
     parser.add_argument("--cost-class", type=float, default=1.0,
@@ -295,6 +297,7 @@ Examples:
             seed=args.seed,
             output_dir=args.output_dir,
             use_patching=args.use_patching,
+            use_dora=args.use_dora,
             num_patches=args.num_patches,
             patch_size=args.patch_size,
             overlap_size=args.overlap_size,
@@ -349,6 +352,7 @@ Examples:
             seed=args.seed,
             output_dir=args.output_dir,
             use_patching=args.use_patching,
+            use_dora=args.use_dora,
             num_patches=args.num_patches,
             patch_size=args.patch_size,
             overlap_size=args.overlap_size,
