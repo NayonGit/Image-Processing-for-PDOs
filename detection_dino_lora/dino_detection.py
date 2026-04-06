@@ -11,8 +11,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchmetrics
 
-from detection_lora.lora import create_backbone_with_lora
-from detection_lora.utils import get_boundaries, extract_patch_targets
+from detection_dino_lora.lora import create_backbone_with_lora
+from detection_dino_lora.utils import get_boundaries, extract_patch_targets
 
 # ---- third_party DINO imports ----
 DINO_REPO = Path(__file__).resolve().parents[1] / "third_party" / "DINO"

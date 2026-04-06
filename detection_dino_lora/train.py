@@ -4,8 +4,8 @@ import torch
 from torch.utils.data import DataLoader, random_split
 from typing import Optional, List
 
-from detection_lora.data import OrganoidDetectionDataset
-from detection_lora.dino_detection import LoRADINOModel
+from detection_dino_lora.data import OrganoidDetectionDataset
+from detection_dino_lora.dino_detection import LoRADINOModel
 
 
 def train(
