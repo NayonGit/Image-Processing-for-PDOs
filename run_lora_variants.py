@@ -1,8 +1,11 @@
 import argparse
 import os
 import lightning as L
+import torch
+
 from lora_variants.train import run_experiment
 
+torch.set_float32_matmul_precision('high')
 def main():
     parser = argparse.ArgumentParser(description="Train Faster R-CNN with PEFT variants on Organoids")
     
@@ -12,6 +15,7 @@ def main():
     parser.add_argument("--dataset", type=str, default="tellu",
                         choices=["tellu", "orgaquant", "multiorg"],
                         help="Name of the dataset in DATASET_INFO")
+    parser.add_argument("--run-num", type=int, default=0, help="Optional run number for logging")
     
     # Hyperparameters
     parser.add_argument("--rank", type=int, default=16, help="Rank for LoRA/DoRA/AdaLoRA")
@@ -25,8 +29,8 @@ def main():
 
     args = parser.parse_args()
 
-    # Example : rcnn_models/tellu/dora_r16/
-    exp_name = f"{args.method}_r{args.rank}" if args.method != "full" else "full_finetuning"
+    # Example : rcnn_models/tellu/dora_r16_0/
+    exp_name = f"{args.method}_r{args.rank}_{args.run_num}" if args.method != "full" else f"full_finetuning_{args.run_num}"
     output_dir = os.path.join(args.output_root, args.dataset, exp_name)
     os.makedirs(output_dir, exist_ok=True)
 
