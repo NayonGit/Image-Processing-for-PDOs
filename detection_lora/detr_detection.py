@@ -167,6 +167,7 @@ class LoRADetectionModel(L.LightningModule):
         
         else:
             opt = self.optimizers()
+            sch = self.lr_schedulers()
             device = images.device
             losses = []
             
@@ -179,7 +180,7 @@ class LoRADetectionModel(L.LightningModule):
                     
                     patch_bounds = (start_y, end_y, start_x, end_x)
                     patch_targets = extract_patch_targets(
-                        targets, patch_bounds, self.img_size, self.patch_size
+                        targets, patch_bounds, self.img_size, patch_size=self.patch_size
                     )
                     
                     patch_targets = [
@@ -197,6 +198,7 @@ class LoRADetectionModel(L.LightningModule):
                     # manually clip gradients to prevent exploding gradients in patch-based training
                     self.clip_gradients(opt, gradient_clip_val=0.1, gradient_clip_algorithm="norm")
                     opt.step()
+                    sch.step()
                     
                     losses.extend([total_loss.detach()] * len(images))
             
@@ -241,7 +243,7 @@ class LoRADetectionModel(L.LightningModule):
                     
                     patch_bounds = (start_y, end_y, start_x, end_x)
                     patch_targets = extract_patch_targets(
-                        targets, patch_bounds, self.img_size, self.patch_size
+                        targets, patch_bounds, self.img_size, patch_size=self.patch_size
                     )
                     
                     patch_targets = [
@@ -333,15 +335,41 @@ class LoRADetectionModel(L.LightningModule):
             weight_decay=self.weight_decay,
         )
 
+
+        total_steps = self.trainer.estimated_stepping_batches
+        if self.use_patching and self.boundaries is not None:
+            num_patches_per_image = len(self.boundaries) * len(self.boundaries)
+            total_steps = total_steps * num_patches_per_image
+        scheduler = torch.optim.lr_scheduler.OneCycleLR(
+            optimizer,
+            max_lr=[self.lr_backbone, self.lr],  # Pour les deux param groups
+            total_steps=total_steps,
+            pct_start=0.05,
+            anneal_strategy='cos',  # Cosine annealing
+            verbose=True,
+            final_div_factor=1000.0,
+        )
+
+        """
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
             optimizer, T_max=self.trainer.max_epochs, eta_min=1e-7
         )
+        
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer,
+            mode='max',                # Maximiser val/mAP_50
+            factor=0.5,                # Divise le LR par 2
+            patience=5,                # Attendre 5 epochs sans amélioration
+            min_lr=1e-7,               # LR minimum
+            verbose=True,              # Affiche les réductions
+        )
+        """
 
         return {
             "optimizer": optimizer,
             "lr_scheduler": {
                 "scheduler": scheduler,
-                "interval": "epoch",
+                "interval": "step",
             },
         }
 
