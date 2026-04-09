@@ -11,7 +11,7 @@ from detection_lora.utils import box_cxcywh_to_xyxy, generalized_box_iou
 from detection_lora.utils import extract_patch_targets, get_boundaries
 import copy
 import torch.nn.functional as F
-from deformable_detr_repo.util.misc import NestedTensor, nested_tensor_from_tensor_list  # Peut rester si NestedTensor n'est pas redéfini
+from detection_lora_deformable.misc import NestedTensor, nested_tensor_from_tensor_list  # Peut rester si NestedTensor n'est pas redéfini
 
 
 

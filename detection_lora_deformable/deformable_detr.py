@@ -43,7 +43,7 @@ import torch.nn.functional as F
 from scipy.optimize import linear_sum_assignment
 from typing import List, Dict, Tuple
 
-from detection_lora.utils import box_cxcywh_to_xyxy, generalized_box_iou
+from detection_lora_deformable.utils import box_cxcywh_to_xyxy, generalized_box_iou
 
 
 
