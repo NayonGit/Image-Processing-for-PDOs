@@ -6,6 +6,8 @@
 # Modified from DETR (https://github.com/facebookresearch/detr)
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 # ------------------------------------------------------------------------
+'''This file was originally part of the Deformable DETR codebase,
+implementing the detection head and related utilities.'''
 
 """
 Misc functions, including distributed helpers.

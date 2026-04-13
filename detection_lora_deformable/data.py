@@ -7,6 +7,10 @@ from torchvision import transforms
 
 from detection_lora_deformable.utils import box_xyxy_to_cxcywh
 
+""" This file defines the OrganoidDetectionDataset class,
+which reads images and bounding-box annotations from an H5 file.
+The dataset supports three datasets: tellu, orgaquant and multiorg, with different annotation formats (detection vs localization).
+"""
 
 DATASET_INFO = {
     "tellu": {
@@ -31,10 +35,6 @@ DATASET_INFO = {
         "num_classes": 1,
     },
 }
-
-# =============================================================================
-# 9. Dataset (tellu / orgaquant / multiorg)
-# =============================================================================
 
 class OrganoidDetectionDataset(Dataset):
     """
@@ -100,7 +100,7 @@ class OrganoidDetectionDataset(Dataset):
         
         orig_h, orig_w = img_np.shape[:2]
 
-        # Etirement de contraste robuste (1% - 99% percentiles)
+        # Robust contrast stretch (1% - 99% percentiles)
         p1, p99 = np.percentile(img_np, (1, 99))
         img_np = np.clip(img_np, p1, p99)
         img_np = (img_np - p1) / (p99 - p1 + 1e-6) * 255

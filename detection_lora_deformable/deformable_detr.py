@@ -1,11 +1,12 @@
-# =============================================================================
-# 2D Sinusoidal Position Encoding Utility
-# =============================================================================
+
+'''This file implements the Deformable DETR detection head, which operates on the patch tokens produced by DINO.
+It includes the DeformableCrossAttention module, which performs multi-scale deformable attention, and the SetCriterion class, which computes the loss for training the model.
+It also includes utility functions for building the position encodings and the detection head.'''
 
 def build_position_encoding(hidden_dim: int, height: int = 32, width: int = 32, device=None, dtype=None):
     """
-    Génère un position encoding 2D sinus/cosinus pour un feature map de taille (height, width).
-    Par défaut, height/width=32 (à adapter selon le besoin).
+    Generate 2D sinusoidal position encodings for a given height and width, with the specified hidden dimension.
+    By default, it generates encodings for a 32x32 feature map, which can be used for the deformable attention in Deformable DETR.
     """
     if device is None:
         device = torch.device("cpu")
@@ -24,7 +25,7 @@ def build_deformable_detection_head(
     num_points: int = 4,
 ):
     """
-    Utilitaire pour instancier la tête DeformableDetectionHead avec tous les bons arguments.
+    Utility function to instantiate the DeformableDetectionHead with all the correct arguments.
     """
     return DeformableDetectionHead(
         num_features=num_features,
@@ -47,9 +48,7 @@ from detection_lora_deformable.utils import box_cxcywh_to_xyxy, generalized_box_
 
 
 
-# =============================================================================
-# 3. Loss Functions
-# =============================================================================
+# Loss Functions
 
 @torch.no_grad()
 def accuracy(output: torch.Tensor, target: torch.Tensor, topk=(1,)):
@@ -68,9 +67,7 @@ def accuracy(output: torch.Tensor, target: torch.Tensor, topk=(1,)):
     return res
 
 
-# =============================================================================
-# 4. Hungarian Matcher
-# =============================================================================
+# Hungarian Matcher
 
 class HungarianMatcher(nn.Module):
     """
@@ -129,9 +126,7 @@ class HungarianMatcher(nn.Module):
         ]
 
 
-# =============================================================================
-# 5. SetCriterion
-# =============================================================================
+# SetCriterion
 
 class SetCriterion(nn.Module):
     """ 
@@ -153,7 +148,7 @@ class SetCriterion(nn.Module):
         self.register_buffer("empty_weight", empty_weight)
 
     def loss_labels(self, outputs, targets, indices, num_boxes, log=True):
-        """Compute the classification loss (NLL)."""
+        """Compute the classification loss."""
         assert "pred_logits" in outputs
         src_logits = outputs["pred_logits"]
         idx = self._get_src_permutation_idx(indices)
@@ -281,9 +276,7 @@ class SetCriterion(nn.Module):
         return losses
 
 
-# =============================================================================
-# 6. Deformable DETR Detection Head
-# =============================================================================
+#  Deformable DETR Detection Head
 
 
 def inverse_sigmoid(x: torch.Tensor, eps: float = 1e-5) -> torch.Tensor:
@@ -316,6 +309,7 @@ def build_2d_sincos_position_embedding(height: int, width: int, num_pos_feats: i
 
 
 class MLP(nn.Module):
+    '''Simple multi-layer perceptron (MLP) with ReLU activations between layers.'''
     def __init__(self, input_dim: int, hidden_dim: int, output_dim: int, num_layers: int):
         super().__init__()
         dims = [input_dim] + [hidden_dim] * (num_layers - 1) + [output_dim]
@@ -330,6 +324,7 @@ class MLP(nn.Module):
 
 
 class MultiScaleDeformableAttention(nn.Module):
+    '''Implements the multi-scale deformable attention mechanism as described in the Deformable DETR paper.'''
     def forward(
         self,
         value: torch.Tensor,
@@ -372,6 +367,7 @@ class MultiScaleDeformableAttention(nn.Module):
 
 
 class DeformableCrossAttention(nn.Module):
+    '''Implements the cross-attention mechanism for the Deformable DETR decoder, which uses multi-scale deformable attention.'''
     def __init__(self, hidden_dim: int, num_heads: int, num_levels: int, num_points: int):
         super().__init__()
         if hidden_dim % num_heads != 0:
@@ -457,6 +453,8 @@ class DeformableCrossAttention(nn.Module):
 
 
 class DeformableDecoderLayer(nn.Module):
+    """Implements a single layer of the Deformable DETR decoder."""
+
     def __init__(self, hidden_dim: int, num_heads: int, num_levels: int, num_points: int, dropout: float = 0.1):
         super().__init__()
         self.self_attn = nn.MultiheadAttention(hidden_dim, num_heads, dropout=dropout, batch_first=True)

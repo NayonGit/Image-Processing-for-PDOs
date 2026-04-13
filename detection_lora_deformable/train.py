@@ -8,9 +8,7 @@ from detection_lora_deformable.model import LoRADeformableDetectionModel
 from detection_lora_deformable.utils import get_boundaries
 from detection_lora_deformable.data import OrganoidDetectionDataset
 
-# =============================================================================
-# 10. Training Script
-# =============================================================================
+'''Training script for LoRA-Deformable DETR on organoid detection datasets, with optional patching strategy.'''
 
 def train(
     # Data
@@ -177,40 +175,11 @@ def test(
     # Data
     dataset_name: str = "tellu",
     h5_path: str | None = None,
-    train_val_split: float = 0.85,
     # Model
-    backbone_name: str = "dinov2",
-    backbone_size: str = "base",
     num_classes: int = None,
-    hidden_dim: int = 256,
-    num_queries: int = 100,
-    num_decoder_heads: int = 8,
-    num_decoder_layers: int = 6,
-    # LoRA (PEFT)
-    lora_rank: int = 8,
-    lora_alpha: int = 16,
-    lora_dropout: float = 0.1,
-    lora_target_modules: Optional[List[str]] = None,
-    # Loss
-    cost_class: float = 1.0,
-    cost_bbox: float = 5.0,
-    cost_giou: float = 2.0,
-    eos_coef: float = 0.1,
-    # Training
-    lr: float = 1e-4,
-    lr_backbone: float = 1e-5,
-    weight_decay: float = 1e-4,
     batch_size: int = 4,
-    max_epochs: int = 100,
-    patience: int = 15,
     num_workers: int = 4,
     seed: int = 42,
-    output_dir: str = "./checkpoints",
-    # Patching
-    use_patching: bool = False,
-    num_patches: int | None = None,
-    patch_size: int = 224,
-    overlap_size: int = 30,
 ):
     """Test a trained model on the validation set using the best checkpoint.
 

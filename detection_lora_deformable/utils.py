@@ -3,9 +3,10 @@ import torch
 from torchvision.ops.boxes import box_area
 from typing import List, Dict, Tuple
 
-# =============================================================================
-# 1. Box Utilities
-# =============================================================================
+'''This file contains utility functions for bounding box manipulation
+(format conversions, IoU calculations) and patching strategies (calculating patch
+boundaries and extracting patch-specific targets). These utilities are used across
+the data loading and model training pipeline.'''
 
 def box_cxcywh_to_xyxy(x: torch.Tensor) -> torch.Tensor:
     """Convert [x_center, y_center, width, height] to [x_min, y_min, x_max, y_max]"""
@@ -43,22 +44,6 @@ def generalized_box_iou(boxes1: torch.Tensor, boxes2: torch.Tensor) -> torch.Ten
     return iou - (area - union) / area
 
 
-# =============================================================================
-# 2. Patch Utilities
-# =============================================================================
-
-"""
-def get_boundaries(num_patches: int, overlap_size: int, patch_size: int = 224) -> Tuple[List[List[int]], int]:
-    img_size = patch_size * num_patches - overlap_size * (num_patches - 1)
-    start = 0
-    boundaries = []
-    for _ in range(num_patches):
-        end = start + patch_size
-        boundaries.append([start, end])
-        start = end - overlap_size
-    return boundaries, img_size
-"""
-
 def get_boundaries(num_patches: int = None, overlap_size: int = 30, patch_size: int = 224, img_size: int = None):
     """
     Calculate patch boundaries with overlap.
@@ -89,49 +74,6 @@ def get_boundaries(num_patches: int = None, overlap_size: int = 30, patch_size: 
             start = end - overlap_size
     return boundaries, img_size
 
-
-"""
-def extract_patch_targets(
-    targets: List[Dict],
-    patch_bounds: Tuple[int, int, int, int],
-    img_size: int,
-    patch_size: int = 224,
-) -> List[Dict]:
-    start_y, end_y, start_x, end_x = patch_bounds
-    device = targets[0]["boxes"].device if targets and "boxes" in targets[0] else torch.device("cpu")
-    patch_lower = torch.tensor([start_x, start_y, start_x, start_y], dtype=torch.float32, device=device) / img_size
-    patch_upper = torch.tensor([end_x, end_y, end_x, end_y], dtype=torch.float32, device=device) / img_size
-    
-    patch_targets = []
-    for tgt in targets:
-        boxes = tgt["boxes"]
-        labels = tgt["labels"]
-        
-        boxes_xyxy = box_cxcywh_to_xyxy(boxes)
-        valid_mask = ((boxes_xyxy > patch_lower) & (boxes_xyxy < patch_upper)).all(dim=1)
-        
-        if valid_mask.sum() > 0:
-            valid_boxes = boxes_xyxy[valid_mask]
-            valid_labels = labels[valid_mask]
-            
-            valid_boxes_pixel = valid_boxes * img_size
-            valid_boxes_pixel -= torch.tensor([start_x, start_y, start_x, start_y], dtype=torch.float32, device=device)
-            valid_boxes_norm = valid_boxes_pixel / patch_size
-            valid_boxes_cxcywh = box_xyxy_to_cxcywh(valid_boxes_norm)
-            valid_boxes_cxcywh = valid_boxes_cxcywh.clamp(0, 1)
-            
-            patch_targets.append({
-                "boxes": valid_boxes_cxcywh,
-                "labels": valid_labels,
-            })
-        else:
-            patch_targets.append({
-                "boxes": torch.zeros((0, 4), dtype=torch.float32, device=device),
-                "labels": torch.zeros((0,), dtype=torch.int64, device=device),
-            })
-    
-    return patch_targets
-"""
 
 def extract_patch_targets(
     targets: List[Dict],

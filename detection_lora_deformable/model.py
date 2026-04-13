@@ -12,9 +12,14 @@ from detection_lora_deformable.utils import extract_patch_targets, get_boundarie
 import torch.nn.functional as F
 from detection_lora_deformable.misc import NestedTensor
 
-
+'''This file defines the main PyTorch Lightning module for our LoRA-Deformable DETR model.
+It includes the model architecture, forward pass, loss computation, training and validation
+ steps, and optimizer configuration. The model integrates a LoRA-adapted DINO
+ backbone with a custom Deformable DETR head. It also supports an optional
+ patching strategy for training on large images.'''
 
 class LoRADeformableDetectionModel(L.LightningModule):
+    '''PyTorch Lightning module for LoRA-Deformable DETR object detection'''
     def __init__(
         self,
         backbone_name: str = "dinov2",
@@ -47,7 +52,6 @@ class LoRADeformableDetectionModel(L.LightningModule):
         super().__init__()
         self.save_hyperparameters()
         self.automatic_optimization = not use_patching
-        
         self.lr = lr
         self.lr_backbone = lr_backbone
         self.weight_decay = weight_decay
@@ -72,9 +76,9 @@ class LoRADeformableDetectionModel(L.LightningModule):
             target_modules=lora_target_modules,
         )
         
-        # On utilise la tête DeformableDetectionHead custom (pure PyTorch)
+        # Use custom Deformable DETR head that can handle variable feature map sizes and dynamic positional embeddings
         from detection_lora_deformable.deformable_detr import build_deformable_detection_head
-        # Synchronise hidden_dim avec la sortie du backbone
+        # Synchronise hidden_dim with backbone output features
         hidden_dim = self.backbone.num_features
         self.deformable_detr_head = build_deformable_detection_head(
             num_features=hidden_dim,
@@ -86,7 +90,6 @@ class LoRADeformableDetectionModel(L.LightningModule):
             num_feature_levels=num_feature_levels,
             num_points=4,
         )
-        # Projection inutile si hidden_dim == num_features, mais on garde pour compatibilité
         self.input_proj = nn.ModuleList()
         self.input_proj.append(nn.Conv2d(hidden_dim, hidden_dim, kernel_size=1))
         self.hidden_dim = hidden_dim  # Pour accès dans forward_patch
@@ -105,24 +108,23 @@ class LoRADeformableDetectionModel(L.LightningModule):
         )
 
     def forward_patch(self, patch: torch.Tensor) -> Dict[str, torch.Tensor]:
-        # 1. Extract features with our LoRA-DINO backbone
+        # Extract features with our LoRA-DINO backbone
         dino_features = self.backbone.extract_features(patch)
-        
         # DINOv2 returns features of shape [B, N, C] where N is num_patches*num_patches
         # We need to reshape it to [B, C, H, W]
         bs, n_patches, feat_dim = dino_features.shape
         h_patches = w_patches = int(n_patches**0.5)
         dino_features_2d = dino_features.permute(0, 2, 1).reshape(bs, feat_dim, h_patches, w_patches)
 
-        # 2. Create a NestedTensor for the features
+        # Create a NestedTensor for the features
         mask = torch.zeros(patch.shape[0], patch.shape[2], patch.shape[3], dtype=torch.bool, device=patch.device)
         nested_features = NestedTensor(dino_features_2d, mask)
         
-        # 3. Generate positional embeddings dynamiquement selon la taille du patch
+        # Generate positional embeddings dynamically based on the feature map size
         _, _, h, w = dino_features_2d.shape
         pos_embed = build_position_encoding(self.hidden_dim, height=h, width=w, device=patch.device, dtype=patch.dtype)
 
-        # 4. Project features to the transformer's hidden dimension
+        # Project features to the transformer's hidden dimension
         src = self.input_proj[0](nested_features.tensors)
         
         # Deformable DETR expects multi-scale features. We only have one scale from DINO.
@@ -131,12 +133,7 @@ class LoRADeformableDetectionModel(L.LightningModule):
         masks = [mask]
         pos_embeds = [pos_embed]
 
-        # 5. Pass to the Deformable Transformer
-        # Passage à la tête custom : on utilise directement la méthode forward de la tête
-        # On concatène les features multi-échelles si besoin (ici, un seul niveau)
-        # La tête custom attend un tensor [seq_len, batch, features]
-        # On adapte la forme si besoin
-        # Ici, on suppose que srcs[0] est [B, C, H, W] -> on le met sous forme [H*W, B, C]
+        # Pass to the Deformable Transformer
         b, c, h, w = srcs[0].shape
         memory = srcs[0].reshape(b, c, h * w).permute(2, 0, 1)  # [H*W, B, C]
         predictions = self.deformable_detr_head(memory)

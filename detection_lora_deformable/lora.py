@@ -5,6 +5,11 @@ import torch.nn as nn
 from peft import get_peft_model, LoraConfig, TaskType
 from typing import List, Optional
 
+'''This file implements the factory function for creating a foundation model 
+backbone (like DINOv2 or DINOv3) with LoRA adapters applied using the PEFT library. 
+It includes utility functions to determine which modules to target for LoRA based 
+on the backbone architecture.'''
+
 DINOV2_SIZE_MAP = {
     "small": ("dinov2_vits14", 384),
     "base": ("dinov2_vitb14", 768),
@@ -23,9 +28,7 @@ REPO_DIR = '../models/dinov3'
 WEIGHTS_DIR = '../models/weights'
 
 
-# =============================================================================
-# 7. Backbone Factory with PEFT LoRA
-# =============================================================================
+# Backbone Factory with PEFT LoRA
 
 def get_lora_target_modules(backbone_name: str, target_all: bool = False) -> List[str]:
     """

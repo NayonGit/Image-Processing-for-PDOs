@@ -10,7 +10,7 @@ Usage:
     python3 run_lora_deformable.py train --dataset-name orgaquant --resume-from ./checkpoints/last.ckpt
 
     # Test a model
-    python3 run_lora_deformable.py test --ckpt-path ./checkpoints/last.ckpt --dataset-name orgaquant
+    python3 run_lora_deformable.py test --ckpt-path deformable_lora_orgaquant.ckpt --dataset-name orgaquant
 """
 
 import argparse
@@ -18,8 +18,6 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'deformable_detr_repo')))
 import torch
-
-# We will create this train script in the next step
 from detection_lora_deformable.train import train as run_train
 from detection_lora_deformable.train import test as run_test
 
@@ -210,7 +208,6 @@ def get_test_parser():
 
 def main():
     """Main entry point."""
-    # Device info
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Device: {device}")
     print(f"PyTorch version: {torch.__version__}")
@@ -333,33 +330,10 @@ Examples:
             ckpt_path=args.ckpt_path,
             dataset_name=args.dataset_name,
             h5_path=args.h5_path,
-            train_val_split=args.train_val_split,
-            backbone_name=args.backbone_name,
-            backbone_size=args.backbone_size,
             num_classes=args.num_classes,
-            hidden_dim=args.hidden_dim,
-            num_queries=args.num_queries,
-            lora_rank=args.lora_rank,
-            lora_alpha=args.lora_alpha,
-            lora_dropout=args.lora_dropout,
-            lora_target_modules=args.lora_target_modules,
-            cost_class=args.cost_class,
-            cost_bbox=args.cost_bbox,
-            cost_giou=args.cost_giou,
-            eos_coef=args.eos_coef,
-            lr=args.lr,
-            lr_backbone=args.lr_backbone,
-            weight_decay=args.weight_decay,
             batch_size=args.batch_size,
-            max_epochs=args.max_epochs,
-            patience=args.patience,
             num_workers=args.num_workers,
-            seed=args.seed,
-            output_dir=args.output_dir,
-            use_patching=args.use_patching,
-            num_patches=args.num_patches,
-            patch_size=args.patch_size,
-            overlap_size=args.overlap_size,
+            seed=args.seed
         )
         
         print()
