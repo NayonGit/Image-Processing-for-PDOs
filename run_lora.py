@@ -352,7 +352,6 @@ Examples:
             seed=args.seed,
             output_dir=args.output_dir,
             use_patching=args.use_patching,
-            use_dora=args.use_dora,
             num_patches=args.num_patches,
             patch_size=args.patch_size,
             overlap_size=args.overlap_size,
