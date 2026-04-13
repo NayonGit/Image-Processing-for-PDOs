@@ -154,6 +154,7 @@ class DetectionModel(L.LightningModule):
         
         else:
             opt = self.optimizers()
+            sch = self.lr_schedulers()
             device = images.device
             losses = []
             
@@ -166,7 +167,7 @@ class DetectionModel(L.LightningModule):
                     
                     patch_bounds = (start_y, end_y, start_x, end_x)
                     patch_targets = extract_patch_targets(
-                        targets, patch_bounds, self.img_size, self.patch_size
+                        targets, patch_bounds, self.img_size, patch_size=self.patch_size
                     )
                     
                     patch_targets = [
@@ -184,6 +185,7 @@ class DetectionModel(L.LightningModule):
                     # manually clip gradients to prevent exploding gradients in patch-based training
                     self.clip_gradients(opt, gradient_clip_val=0.1, gradient_clip_algorithm="norm")
                     opt.step()
+                    sch.step()
                     
                     losses.extend([total_loss.detach()] * len(images))
             
@@ -228,7 +230,7 @@ class DetectionModel(L.LightningModule):
                     
                     patch_bounds = (start_y, end_y, start_x, end_x)
                     patch_targets = extract_patch_targets(
-                        targets, patch_bounds, self.img_size, self.patch_size
+                        targets, patch_bounds, self.img_size, patch_size=self.patch_size
                     )
                     
                     patch_targets = [
@@ -306,15 +308,30 @@ class DetectionModel(L.LightningModule):
             weight_decay=self.weight_decay,
         )
 
+        """
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
             optimizer, T_max=self.trainer.max_epochs, eta_min=1e-7
+        )
+        """
+
+        total_steps = self.trainer.estimated_stepping_batches
+        if self.use_patching and self.boundaries is not None:
+            num_patches_per_image = len(self.boundaries) * len(self.boundaries)
+            total_steps = total_steps * num_patches_per_image
+        scheduler = torch.optim.lr_scheduler.OneCycleLR(
+            optimizer,
+            max_lr=self.lr,
+            total_steps=total_steps,
+            pct_start=0.05,
+            anneal_strategy='cos',  # Cosine annealing
+            final_div_factor=1000.0,
         )
 
         return {
             "optimizer": optimizer,
             "lr_scheduler": {
                 "scheduler": scheduler,
-                "interval": "epoch",
+                "interval": "step",
             },
         }
 

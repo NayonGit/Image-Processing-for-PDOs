@@ -62,6 +62,8 @@ def get_train_parser():
     parser.add_argument("--lora-target-modules", type=str, nargs="+",
                         default=["qkv", "proj", "fc1", "fc2"],
                         help="Target modules for LoRA adaptation")
+    parser.add_argument("--use-dora", type=bool, default=False,
+                        help="Whether to use DoRA for dynamic rank adjustment")
     
     # Loss
     parser.add_argument("--cost-class", type=float, default=1.0,
@@ -173,11 +175,11 @@ def get_test_parser():
                         help="Learning rate for LoRA parameters")
     parser.add_argument("--weight-decay", type=float, default=1e-4,
                         help="Weight decay")
-    parser.add_argument("--batch-size", type=int, default=4,
+    parser.add_argument("--batch-size", type=int, default=8,
                         help="Batch size")
     parser.add_argument("--max-epochs", type=int, default=100,
                         help="Maximum number of epochs")
-    parser.add_argument("--patience", type=int, default=15,
+    parser.add_argument("--patience", type=int, default=20,
                         help="Early stopping patience")
     parser.add_argument("--num-workers", type=int, default=4,
                         help="Number of data loading workers")
@@ -187,7 +189,7 @@ def get_test_parser():
                         help="Directory to save test results")
     
     # Patching
-    parser.add_argument("--use-patching", action="store_true", default=False,
+    parser.add_argument("--use-patching", action="store_true", default=True,
                         help="Use patching for testing")
     parser.add_argument("--num-patches", type=int, default=None,
                         help="Number of patches")
@@ -295,6 +297,7 @@ Examples:
             seed=args.seed,
             output_dir=args.output_dir,
             use_patching=args.use_patching,
+            use_dora=args.use_dora,
             num_patches=args.num_patches,
             patch_size=args.patch_size,
             overlap_size=args.overlap_size,
@@ -349,6 +352,7 @@ Examples:
             seed=args.seed,
             output_dir=args.output_dir,
             use_patching=args.use_patching,
+            use_dora=args.use_dora,
             num_patches=args.num_patches,
             patch_size=args.patch_size,
             overlap_size=args.overlap_size,

@@ -14,7 +14,7 @@ DATASET_INFO = {
         "task": "detection", # labels = [cls, x1, y1, x2, y2]
         "original_size": (960, 1280), #(1024, 1024),
         "img_size": 1024,
-        "num_classes": 1,
+        "num_classes": 4 #1,
     },
     "orgaquant": {
         "path": "data/orgaquant_processed.h5",
@@ -134,7 +134,8 @@ class OrganoidDetectionDataset(Dataset):
         if self.task == "detection":
             if self.dataset_name == "tellu":
                 # [x1, y1, x2, y2] with single class
-                cls_ids = np.zeros(len(lbl_np), dtype=np.int64)
+                #cls_ids = np.zeros(len(lbl_np), dtype=np.int64)
+                cls_ids = lbl_np[:, 0].astype(np.int64) - 1
                 coords = lbl_np[:, 1:5].astype(np.float32)
             else:
                 # [cls, x1, y1, x2, y2]
