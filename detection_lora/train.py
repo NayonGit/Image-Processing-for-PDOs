@@ -190,7 +190,6 @@ def test(
     lora_alpha: int = 16,
     lora_dropout: float = 0.1,
     lora_target_modules: Optional[List[str]] = None,
-    use_dora: bool = False,
     # Loss
     cost_class: float = 1.0,
     cost_bbox: float = 5.0,
@@ -234,7 +233,7 @@ def test(
     print(f"[Data] Test: {len(test_dataset)}")
     print(f"[Info] Inferred num_classes={num_classes} from dataset.")
 
-    model = LoRADetectionModel.load_from_checkpoint(ckpt_path, use_dora=use_dora)
+    model = LoRADetectionModel.load_from_checkpoint(ckpt_path)
 
     test_loader = DataLoader(
         test_dataset,
