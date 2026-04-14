@@ -168,7 +168,9 @@ class OrganoidDetectionDataset(Dataset):
         valid = (w > 0) & (h > 0)
         boxes_xyxy = boxes_xyxy[valid]        
         cls_ids = cls_ids[valid.numpy()]
-        # labels = torch.tensor(cls_ids + 1, dtype=torch.int64)
-        labels = torch.tensor(cls_ids, dtype=torch.int64 )
+        if self.dataset_name == "tellu" and self.num_classes == 4:
+            labels = torch.tensor(cls_ids, dtype=torch.int64)
+        else:
+            labels = torch.tensor(cls_ids + 1, dtype=torch.int64)
 
         return boxes_xyxy, labels
