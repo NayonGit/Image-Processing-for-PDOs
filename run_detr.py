@@ -54,6 +54,10 @@ def get_train_parser():
                         help="Number of attention heads in decoder")
     parser.add_argument("--num-decoder-layers", type=int, default=3,
                         help="Number of transformer decoder layers")
+    parser.add_argument("--num-feature-levels", type=int, default=4,
+                        help="Number of feature levels for deformable attention")
+    parser.add_argument("--deformable-attention", action="store_true", default=False,
+                        help="Use deformable attention in the detection head")
     
     # LoRA (PEFT)
     parser.add_argument("--lora-rank", type=int, default=8,
@@ -147,6 +151,10 @@ def get_test_parser():
                         help="Number of attention heads in decoder")
     parser.add_argument("--num-decoder-layers", type=int, default=3,
                         help="Number of transformer decoder layers")
+    parser.add_argument("--num-feature-levels", type=int, default=4,
+                        help="Number of feature levels for deformable attention")
+    parser.add_argument("--deformable-attention", action="store_true", default=False,
+                        help="Use deformable attention in the detection head")
     
     # LoRA (PEFT)
     parser.add_argument("--lora-rank", type=int, default=8,
@@ -265,6 +273,7 @@ Examples:
         print(f"Batch size: {args.batch_size}")
         print(f"Max epochs: {args.max_epochs}")
         print(f"Use patching: {args.use_patching}")
+        print(f"Deformable attention: {args.deformable_attention}")
         if args.resume_from:
             print(f"Resuming from: {args.resume_from}")
         print("=" * 80)
@@ -303,6 +312,8 @@ Examples:
             num_patches=args.num_patches,
             patch_size=args.patch_size,
             overlap_size=args.overlap_size,
+            deformable_attention=args.deformable_attention,
+            num_feature_levels=args.num_feature_levels,
             resume_from_checkpoint=args.resume_from,
         )
         
@@ -357,6 +368,8 @@ Examples:
             num_patches=args.num_patches,
             patch_size=args.patch_size,
             overlap_size=args.overlap_size,
+            deformable_attention=args.deformable_attention,
+            num_feature_levels=args.num_feature_levels,
         )
         
         print()

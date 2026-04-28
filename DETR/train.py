@@ -5,7 +5,7 @@ import torch
 from torch.utils.data import DataLoader, random_split
 from typing import List, Optional
 
-from DETR.detr_detection import LoRADetectionModel
+from DETR.model import LoRADetectionModel
 from DETR.utils import get_boundaries
 from DETR.data_detr import OrganoidDetectionDataset
 
@@ -59,6 +59,9 @@ def train(
     num_patches: int | None = None,
     patch_size: int = 224,
     overlap_size: int = 30,
+    # Deformable Parameters
+    deformable_attention: bool = False,
+    num_feature_levels: int = 4,
     # Resume training
     resume_from_checkpoint: Optional[str] = None,
 ):
@@ -121,6 +124,8 @@ def train(
         num_patches=num_patches,
         patch_size=patch_size,
         overlap_size=overlap_size,
+        deformable_attention=deformable_attention,
+        num_feature_levels=num_feature_levels,
     )
 
     train_loader = DataLoader(
