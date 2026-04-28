@@ -1,2 +1,2 @@
-Bienvenue dans le Readme la team ! 
-Mettez toutes les infos nécessaires au bon usage du repo ici (par exemple où trouver la base de données)
+Welcome to the Exploring Foundation Models for PDOs GitHub Repository !
+
