@@ -17,8 +17,8 @@ import argparse
 import os
 import torch
 
-from detection_lora.train import train as run_train
-from detection_lora.train import test as run_test
+from DETR.train import train as run_train
+from DETR.train import test as run_test
 
 
 def get_train_parser():
@@ -36,11 +36,14 @@ def get_train_parser():
     
     # Model
     parser.add_argument("--backbone-name", type=str, default="dinov2",
-                        choices=["dinov2", "dinov3"],
+                        choices=["dinov2", "dinov3", "rcnn"],
                         help="Name of the backbone model")
     parser.add_argument("--backbone-size", type=str, default="base",
                         choices=["small", "base", "large", "giant"],
                         help="Size of the backbone model")
+    parser.add_argument("--method", type=str, default="lora",
+                        choices=["lora", "dora", "none"],
+                        help="PEFT method to use for adaptation")
     parser.add_argument("--num-classes", type=int, default=None,
                         help="Number of classes (auto-inferred if None)")
     parser.add_argument("--hidden-dim", type=int, default=256,
@@ -60,7 +63,7 @@ def get_train_parser():
     parser.add_argument("--lora-dropout", type=float, default=0.1,
                         help="Dropout for LoRA layers")
     parser.add_argument("--lora-target-modules", type=str, nargs="+",
-                        default=["qkv", "proj", "fc1", "fc2"],
+                        default=None,
                         help="Target modules for LoRA adaptation")
     parser.add_argument("--use-dora", type=bool, default=False,
                         help="Whether to use DoRA for dynamic rank adjustment")
@@ -132,7 +135,7 @@ def get_test_parser():
     
     # Model
     parser.add_argument("--backbone-name", type=str, default="dinov2",
-                        choices=["dinov2", "dinov3"],
+                        choices=["dinov2", "dinov3", "rcnn"],
                         help="Name of the backbone model")
     parser.add_argument("--backbone-size", type=str, default="base",
                         help="Size of the backbone model")
@@ -274,6 +277,7 @@ Examples:
             train_val_split=args.train_val_split,
             backbone_name=args.backbone_name,
             backbone_size=args.backbone_size,
+            method = args.method,
             num_classes=args.num_classes,
             hidden_dim=args.hidden_dim,
             num_queries=args.num_queries,
